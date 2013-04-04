@@ -25,16 +25,20 @@ def PrintMatrix(matrix):
 def RemoveHighFreqCoefficients(matrix, level):
   # level in the range 7 down to 1. 1 is the most severe trimming of the DCT
   # coefficients.
+  total_excess = []
   for h in range(8):
     for w in range(8):
-      if w >= level - h:
-        matrix[h][w] = 0
-  return matrix
+      total_excess.append(abs(matrix[h][w]) - level)
+      if abs(matrix[h][w]) > level:
+        matrix[h][w] = level if matrix[h][w] > level else -level
+
+  return matrix, total_excess
 
 def main(argv):
-  image = cv2.imread('maple.jpg', cv2.CV_LOAD_IMAGE_GRAYSCALE)
+  image = cv2.imread('../data/maple.jpg', cv2.CV_LOAD_IMAGE_GRAYSCALE)
 
-  for level in range(9):
+  for level in range(5, 40, 5):
+    excess = []
     new_image = np.zeros(image.shape)
     height, width = image.shape
     for h in range(0, height, 8):
@@ -46,7 +50,10 @@ def main(argv):
         # PrintMatrix(sub_im)
         dctd = TwoDDCT(sub_im.astype('float'))
 
-        de_high_freq = RemoveHighFreqCoefficients(dctd, level)
+        de_high_freq, avg_excess = RemoveHighFreqCoefficients(dctd, level)
+
+        excess.append(avg_excess)
+
         to_reimplant = np.around(TwoDIDCT(de_high_freq))
         to_reimplant[to_reimplant > 255] = 255
         to_reimplant[to_reimplant < 0] = 0
@@ -56,6 +63,11 @@ def main(argv):
             new_image[i][j] = to_reimplant[i-h][j-w]
 
     cv2.imwrite('maple-reduced-%d.jpg' % level, new_image)
+    print [np.std(exc) for exc in excess]
+    with open('data.csv','a') as fh:
+      for exc in excess:
+        for ex in exc:
+          fh.write('%f\n' % ex)
 
 if __name__=='__main__':
   main(sys.argv)

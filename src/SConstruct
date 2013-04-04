@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import os
+
+env = Environment(LIBPATH=['.'])
+env['ENV']['TERM'] = os.environ['TERM']
+
+env['CXX'] = 'clang++'
+env['CXXFLAGS'] = ['-Wall', '-ggdb2', '-O0']
+
+conf = Configure(env)
+env = conf.Finish()
+
+env.Program(target = 'main',
+            source = ['main.cc'],
+            LIBS=['jpeg_codec', 'jpeg','glog'])
+
+
+lib_target = "jpeg_codec"
+lib_sources = ['jpeg_codec.cc']
+
+env.SharedLibrary(target = lib_target, source = lib_sources)
