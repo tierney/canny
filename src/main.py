@@ -6,6 +6,17 @@ import sys
 from scipy.fftpack import dct
 import numpy as np
 
+epsilons = [0.99074126327462231,
+            3.6661674303584841,
+            9.3952604455155004,
+            18.760113220064738,
+            37.738436922521913,
+            76.529427414425342,
+            161.6914905923812,
+            511.71345539866354,
+            766.65549568965514,
+            1258.5326821590593]
+
 def TwoDDCT(matrix):
   return dct(dct(matrix, axis=0, norm='ortho'), axis=1, norm='ortho')
 
@@ -30,7 +41,7 @@ def RemoveHighFreqCoefficients(matrix, level):
     for w in range(8):
       total_excess.append(abs(matrix[h][w]) - level)
       if abs(matrix[h][w]) > level:
-        matrix[h][w] = level if matrix[h][w] > level else -level
+        matrix[h][w] = level # if matrix[h][w] > level else -level
 
   return matrix, total_excess
 
@@ -67,7 +78,8 @@ def main(argv):
     with open('data.csv','a') as fh:
       for exc in excess:
         for ex in exc:
-          fh.write('%f\n' % ex)
+          if float(ex) > 0:
+            fh.write('%f\n' % ex)
 
 if __name__=='__main__':
   main(sys.argv)
