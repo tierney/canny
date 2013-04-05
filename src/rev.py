@@ -97,6 +97,8 @@ def WeightedChoice(h, w):
 def Reshift(square):
   for h in range(0, 8):
     for w in range(0, 8):
+      if h == 0 and w == 0:
+          continue
       if abs(square[h][w]) > 15:
         sign = 1.0 if square[h][w] > 0 else -1.0
         square[h][w] = sign * WeightedChoice(h,w)
