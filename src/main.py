@@ -39,6 +39,8 @@ def RemoveHighFreqCoefficients(matrix, level):
   total_excess = []
   for h in range(8):
     for w in range(8):
+      if h == 0 and w == 0:
+        continue
       total_excess.append(abs(matrix[h][w]) - level)
       if abs(matrix[h][w]) > level:
         matrix[h][w] = level # if matrix[h][w] > level else -level
