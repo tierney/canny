@@ -39,47 +39,6 @@ import bisect
 import random
 import itertools
 
-try:
-    xrange
-except NameError:
-    # Python 3.x
-    xrange = range
-
-
-def weighted_random_choice(seq, weight):
-    """Returns a random element from ``seq``. The probability for each element
-    ``elem`` in ``seq`` to be selected is weighted by ``weight(elem)``.
-
-    ``seq`` must be an iterable containing more than one element.
-
-    ``weight`` must be a callable accepting one argument, and returning a
-    non-negative number. If ``weight(elem)`` is zero, ``elem`` will not be
-    considered.
-
-    """
-    weights = 0
-    elems = []
-    for elem in seq:
-        w = weight(elem)
-        try:
-            is_neg = w < 0
-        except TypeError:
-            raise ValueError("Weight of element '%s' is not a number (%s)" %
-                             (elem, w))
-        if is_neg:
-            raise ValueError("Weight of element '%s' is negative (%s)" %
-                             (elem, w))
-        if w != 0:
-            try:
-                weights += w
-            except TypeError:
-                raise ValueError("Weight of element '%s' is not a number "
-                                 "(%s)" % (elem, w))
-            elems.append((weights, elem))
-    if not elems:
-        raise ValueError("Empty sequence")
-    ix = bisect.bisect(elems, (random.uniform(0, weights), None))
-    return elems[ix][1]
 
 def TwoDDCT(matrix):
   return dct(dct(matrix, axis=0, norm='ortho'), axis=1, norm='ortho')
@@ -98,7 +57,8 @@ def Reshift(square):
   for h in range(0, 8):
     for w in range(0, 8):
       if h == 0 and w == 0:
-          continue
+        square[h][w] = WeightedChoice(h,w)
+        continue
       if abs(square[h][w]) > 15:
         sign = 1.0 if square[h][w] > 0 else -1.0
         square[h][w] = sign * WeightedChoice(h,w)

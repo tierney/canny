@@ -33,19 +33,28 @@ def PrintMatrix(matrix):
       print matrix[h][w],
     print
 
+
+def sign(num):
+  return -1.0 if num < 0 else 1.0
+
 def RemoveHighFreqCoefficients(matrix, level):
   # level in the range 7 down to 1. 1 is the most severe trimming of the DCT
   # coefficients.
   total_excess = []
+  secret = np.zeros((8,8))
   for h in range(8):
     for w in range(8):
       if h == 0 and w == 0:
+        secret[h][w] = matrix[h][w]
+        matrix[h][w] = 0
         continue
       total_excess.append(abs(matrix[h][w]) - level)
       if abs(matrix[h][w]) > level:
+        secret[h][w] = sign(matrix[h][w]) * (abs(matrix[h][w]) - level)
         matrix[h][w] = level # if matrix[h][w] > level else -level
+  return matrix, secret, total_excess
 
-  return matrix, total_excess
+
 
 def main(argv):
   image = cv2.imread('../data/maple.jpg', cv2.CV_LOAD_IMAGE_GRAYSCALE)
@@ -53,6 +62,8 @@ def main(argv):
   for level in range(5, 40, 5):
     excess = []
     new_image = np.zeros(image.shape)
+    secret_image = np.zeros(image.shape)
+
     height, width = image.shape
     for h in range(0, height, 8):
       for w in range(0, width, 8):
@@ -63,7 +74,7 @@ def main(argv):
         # PrintMatrix(sub_im)
         dctd = TwoDDCT(sub_im.astype('float'))
 
-        de_high_freq, avg_excess = RemoveHighFreqCoefficients(dctd, level)
+        de_high_freq, secret, avg_excess = RemoveHighFreqCoefficients(dctd, level)
 
         excess.append(avg_excess)
 
@@ -75,6 +86,14 @@ def main(argv):
           for j in range(w, w+8):
             new_image[i][j] = to_reimplant[i-h][j-w]
 
+        sub_secret = np.around(TwoDIDCT(secret))
+        sub_secret[sub_secret > 255] = 255
+        sub_secret[sub_secret < 0] = 0
+        # PrintMatrix(sub_secret)
+        for i in range(h, h+8):
+          for j in range(w, w+8):
+            secret_image[i][j] = sub_secret[i-h][j-w]
+    cv2.imwrite('maple-reduced-%d.secret.jpg' % level, secret_image)
     cv2.imwrite('maple-reduced-%d.jpg' % level, new_image)
     print [np.std(exc) for exc in excess]
     with open('data.csv','a') as fh:
